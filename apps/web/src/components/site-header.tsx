@@ -30,16 +30,16 @@ export function SiteHeader({ locale, phone, labels }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-stone-200/80 bg-white/85 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-stone-900/95 text-white backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
         <Link href={`/${locale}`} className="shrink-0 leading-tight" aria-label="QAZAQ TAS GROUP">
           {logoFailed ? (
             // Пока файл логотипа не загружен — показываем текстовое написание.
             <>
-              <span className="block text-base font-semibold tracking-tight text-stone-900">
+              <span className="block text-base font-semibold tracking-tight text-white">
                 QAZAQ TAS
               </span>
-              <span className="block text-[11px] tracking-[0.18em] text-stone-500 uppercase">
+              <span className="block text-[11px] tracking-[0.18em] text-stone-400 uppercase">
                 Group
               </span>
             </>
@@ -63,7 +63,7 @@ export function SiteHeader({ locale, phone, labels }: Props) {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm text-stone-600 transition-colors hover:text-stone-900"
+              className="text-sm text-stone-300 transition-colors hover:text-white"
             >
               {link.label}
             </Link>
@@ -71,7 +71,7 @@ export function SiteHeader({ locale, phone, labels }: Props) {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          <div className="hidden items-center rounded-lg border border-stone-200 p-0.5 sm:flex">
+          <div className="hidden items-center rounded-lg border border-white/20 p-0.5 sm:flex">
             {LOCALES.map((item) => (
               <Link
                 key={item}
@@ -79,8 +79,8 @@ export function SiteHeader({ locale, phone, labels }: Props) {
                 aria-current={item === locale ? 'true' : undefined}
                 className={
                   item === locale
-                    ? 'rounded-md bg-stone-900 px-2.5 py-1 text-xs font-medium text-white'
-                    : 'rounded-md px-2.5 py-1 text-xs text-stone-600 hover:text-stone-900'
+                    ? 'rounded-md bg-white px-2.5 py-1 text-xs font-medium text-stone-900'
+                    : 'rounded-md px-2.5 py-1 text-xs text-stone-300 hover:text-white'
                 }
               >
                 {LOCALE_NAMES[item]}
@@ -90,7 +90,7 @@ export function SiteHeader({ locale, phone, labels }: Props) {
 
           <a
             href={`tel:${phone.replace(/[^\d+]/g, '')}`}
-            className="hidden text-sm font-medium whitespace-nowrap text-stone-900 lg:block"
+            className="hidden text-sm font-medium whitespace-nowrap text-white lg:block"
           >
             {phone}
           </a>
@@ -100,7 +100,7 @@ export function SiteHeader({ locale, phone, labels }: Props) {
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-label="Меню"
-            className="rounded-lg border border-stone-200 p-2 md:hidden"
+            className="rounded-lg border border-white/20 p-2 md:hidden"
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor">
               <path strokeWidth="1.75" strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
@@ -110,14 +110,14 @@ export function SiteHeader({ locale, phone, labels }: Props) {
       </div>
 
       {open && (
-        <nav className="border-t border-stone-200 bg-white px-4 py-3 md:hidden">
+        <nav className="border-t border-white/10 bg-stone-900 px-4 py-3 md:hidden">
           <ul className="space-y-1">
             {links.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm text-stone-700 hover:bg-stone-50"
+                  className="block rounded-lg px-3 py-2.5 text-sm text-stone-200 hover:bg-white/10"
                 >
                   {link.label}
                 </Link>
@@ -130,8 +130,8 @@ export function SiteHeader({ locale, phone, labels }: Props) {
                   href={swap(item)}
                   className={
                     item === locale
-                      ? 'rounded-md bg-stone-900 px-3 py-1.5 text-xs font-medium text-white'
-                      : 'rounded-md border border-stone-200 px-3 py-1.5 text-xs text-stone-600'
+                      ? 'rounded-md bg-white px-3 py-1.5 text-xs font-medium text-stone-900'
+                      : 'rounded-md border border-white/20 px-3 py-1.5 text-xs text-stone-300'
                   }
                 >
                   {LOCALE_NAMES[item]}
