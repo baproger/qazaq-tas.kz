@@ -30,7 +30,9 @@ jobs:
           cache: npm
 
       - name: Установка зависимостей
-        run: npm ci
+        # npm install, а не npm ci: lock-файл создаётся на macOS и не содержит
+        # платформенных бинарников для Linux (lightningcss, swc).
+        run: npm install --no-audit --no-fund
 
       - name: Проверка схемы базы данных
         run: npx prisma validate --schema packages/database/prisma/schema.prisma
