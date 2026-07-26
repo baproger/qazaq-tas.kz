@@ -69,8 +69,10 @@ export default async function CatalogPage({
               locale={locale}
               labels={{
                 from: t('catalog.from'),
+                to: t('catalog.to'),
+                onRequest: t('catalog.onRequest'),
                 inStock: t('catalog.inStock'),
-                outOfStock: t('catalog.outOfStock'),
+                onOrder: t('catalog.onOrder'),
               }}
             />
           ))}

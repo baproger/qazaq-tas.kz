@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE `products` ADD COLUMN `availability` ENUM('IN_STOCK', 'ON_ORDER', 'ON_REQUEST') NOT NULL DEFAULT 'IN_STOCK',
+    ADD COLUMN `diameterCm` DECIMAL(8, 1) NULL,
+    ADD COLUMN `heightCm` DECIMAL(8, 1) NULL,
+    ADD COLUMN `lengthCm` DECIMAL(8, 1) NULL,
+    ADD COLUMN `material` VARCHAR(191) NULL,
+    ADD COLUMN `materialKk` VARCHAR(191) NULL,
+    ADD COLUMN `priceMax` DECIMAL(12, 2) NULL,
+    ADD COLUMN `volumeL` DECIMAL(8, 1) NULL,
+    ADD COLUMN `widthCm` DECIMAL(8, 1) NULL;

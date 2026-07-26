@@ -15,8 +15,12 @@ export interface SiteProduct {
   shortDescription: string | null;
   unit: string;
   price: number;
+  priceMax: number | null;
+  availability: 'IN_STOCK' | 'ON_ORDER' | 'ON_REQUEST';
+  material: string | null;
   dimensions: string | null;
-  colors: string[];
+  measures: Array<{ label: string; value: string }>;
+  colors: Array<{ name: string; hex: string | null }>;
   inStock: boolean;
   image: string | null;
   category: { slug: string; name: string };

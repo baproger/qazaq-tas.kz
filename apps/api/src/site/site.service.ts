@@ -108,7 +108,16 @@ export class SiteService {
       shortDescriptionKk: string | null;
       unit: string;
       price: unknown;
+      priceMax: unknown;
+      availability: string;
+      material: string | null;
+      materialKk: string | null;
       dimensions: string | null;
+      heightCm: unknown;
+      widthCm: unknown;
+      lengthCm: unknown;
+      diameterCm: unknown;
+      volumeL: unknown;
       colors: unknown;
       inStock: boolean;
       images: Array<{ url: string }>;
@@ -122,8 +131,19 @@ export class SiteService {
       shortDescription: localized(locale, product.shortDescription, product.shortDescriptionKk),
       unit: product.unit,
       price: Number(product.price),
+      priceMax: product.priceMax === null ? null : Number(product.priceMax),
+      availability: product.availability,
+      material: localized(locale, product.material, product.materialKk),
       dimensions: product.dimensions,
-      colors: (product.colors as string[] | null) ?? [],
+      // Габариты метками — показываем только заполненные
+      measures: [
+        product.heightCm && { label: 'В', value: `${Number(product.heightCm)} см` },
+        product.widthCm && { label: 'Ш', value: `${Number(product.widthCm)} см` },
+        product.lengthCm && { label: 'Д', value: `${Number(product.lengthCm)} см` },
+        product.diameterCm && { label: '⌀', value: `${Number(product.diameterCm)} см` },
+        product.volumeL && { label: 'Объём', value: `${Number(product.volumeL)} л` },
+      ].filter(Boolean),
+      colors: normalizeColors(product.colors),
       inStock: product.inStock,
       image: product.images[0]?.url ?? null,
       category: {
@@ -132,6 +152,28 @@ export class SiteService {
       },
     };
   }
+}
+
+/**
+ * Цвета хранятся либо строками («Серый»), либо объектами с образцом.
+ * Приводим к единому виду, чтобы витрина всегда получала одно и то же.
+ */
+function normalizeColors(value: unknown): Array<{ name: string; hex: string | null }> {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (typeof item === 'string') return { name: item, hex: null };
+      if (item && typeof item === 'object' && 'name' in item) {
+        const record = item as { name: unknown; hex?: unknown };
+        return {
+          name: String(record.name),
+          hex: typeof record.hex === 'string' ? record.hex : null,
+        };
+      }
+      return null;
+    })
+    .filter((item): item is { name: string; hex: string | null } => item !== null);
 }
 
 /** Казахский вариант, если он заполнен; иначе русский — чтобы сайт не зиял пустотами. */

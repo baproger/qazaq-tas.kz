@@ -126,6 +126,13 @@ model Category {
   @@map("categories")
 }
 
+/// Наличие товара
+enum Availability {
+  IN_STOCK // В наличии
+  ON_ORDER // Под заказ
+  ON_REQUEST // Цена по запросу
+}
+
 /// Товар каталога
 model Product {
   id               String   @id @default(uuid())
@@ -140,12 +147,26 @@ model Product {
   description      String?  @db.Text
   descriptionKk    String?  @db.Text
   unit             Unit     @default(M2)
-  /// Цена за единицу измерения, тенге
+  /// Цена за единицу измерения, тенге. Нижняя граница диапазона.
   price            Decimal  @db.Decimal(12, 2)
+  /// Верхняя граница: если задана, на сайте выводится «от X до Y»
+  priceMax         Decimal? @db.Decimal(12, 2)
   oldPrice         Decimal? @db.Decimal(12, 2)
-  /// Размеры изделия, например «300x300x60 мм»
+  /// Материал изготовления: «Композитный мрамор», «Бетон», «Мрамор + дерево»
+  material         String?  @db.VarChar(191)
+  materialKk       String?  @db.VarChar(191)
+  /// Наличие: в наличии, под заказ или цена по запросу
+  availability     Availability @default(IN_STOCK)
+  /// Габариты в сантиметрах — каждый отдельно, чтобы показывать метками
+  heightCm         Decimal? @db.Decimal(8, 1)
+  widthCm          Decimal? @db.Decimal(8, 1)
+  lengthCm         Decimal? @db.Decimal(8, 1)
+  diameterCm       Decimal? @db.Decimal(8, 1)
+  /// Объём в литрах — для урн и вазонов
+  volumeL          Decimal? @db.Decimal(8, 1)
+  /// Размеры одной строкой, если не раскладываются по полям: «15x30 см, 7x7 см»
   dimensions       String?  @db.VarChar(191)
-  /// Доступные цвета: ["Серый", "Красный"]
+  /// Цвета с образцами: [{"name":"Серый","hex":"#8a8a8a"}]
   colors           Json?
   /// Характеристики: {"Морозостойкость": "F200", "Прочность": "М400"}
   specs            Json?
