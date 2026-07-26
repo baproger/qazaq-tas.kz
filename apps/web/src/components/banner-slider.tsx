@@ -12,8 +12,15 @@ interface Props {
 }
 
 /**
- * Лента акций. Листается сама, но останавливается при наведении и при фокусе
- * с клавиатуры — иначе читающий не успевает дочитать слайд.
+ * Лента акций.
+ *
+ * Два режима отображения:
+ *  — если хотя бы у одного слайда есть фотография, все слайды получают
+ *    одинаковую высоту полосы, иначе лента прыгала бы при перелистывании;
+ *  — если фотографий нет вовсе, лента остаётся узкой текстовой строкой.
+ *
+ * Листается сама, но останавливается при наведении и при фокусе с клавиатуры —
+ * иначе читающий не успевает дочитать слайд.
  */
 export function BannerSlider({ banners, locale, interval = 6000 }: Props) {
   const [index, setIndex] = useState(0);
@@ -21,12 +28,12 @@ export function BannerSlider({ banners, locale, interval = 6000 }: Props) {
   const touchStart = useRef<number | null>(null);
 
   const count = banners.length;
+  const withPhotos = banners.some((banner) => Boolean(banner.imageUrl));
+
   const go = useCallback((next: number) => setIndex(((next % count) + count) % count), [count]);
 
   useEffect(() => {
     if (count < 2 || paused) return;
-
-    // Не крутим ленту, если пользователь просил уменьшить движение.
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const timer = setInterval(() => setIndex((current) => (current + 1) % count), interval);
@@ -37,6 +44,10 @@ export function BannerSlider({ banners, locale, interval = 6000 }: Props) {
 
   const href = (banner: SiteBanner) =>
     banner.linkUrl?.startsWith('/') ? `/${locale}${banner.linkUrl}` : (banner.linkUrl ?? '#');
+
+  // Высота полосы подобрана так, чтобы фотография читалась,
+  // но первый экран с заголовком и каталогом не уходил за границу экрана.
+  const slideHeight = withPhotos ? 'h-[15rem] sm:h-[19rem] lg:h-[23rem]' : '';
 
   return (
     <section
@@ -68,20 +79,20 @@ export function BannerSlider({ banners, locale, interval = 6000 }: Props) {
             aria-roledescription="slide"
             aria-label={`${position + 1} из ${count}`}
             aria-hidden={position !== index}
-            className="w-full shrink-0"
+            className={`w-full shrink-0 ${slideHeight}`}
           >
             <Link
               href={href(banner)}
               tabIndex={position === index ? 0 : -1}
               className={
-                banner.imageUrl
-                  ? 'group relative flex min-h-[13rem] items-end sm:min-h-[16rem] lg:min-h-[19rem]'
+                withPhotos
+                  ? 'group relative flex size-full items-end'
                   : 'group mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-sm sm:px-6'
               }
             >
               {banner.imageUrl && (
                 <>
-                  {/* Снимок закрывает всю площадь без искажения пропорций */}
+                  {/* Снимок закрывает полосу целиком, пропорции не искажаются */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={banner.imageUrl}
@@ -89,46 +100,48 @@ export function BannerSlider({ banners, locale, interval = 6000 }: Props) {
                     className="absolute inset-0 size-full object-cover"
                     loading={position === 0 ? 'eager' : 'lazy'}
                   />
-                  {/* Затемнение снизу: текст остаётся читаемым на светлой фотографии */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/45 to-stone-950/10" />
+                  {/* Два затемнения: снизу под текст, слева — чтобы заголовок
+                      читался и на светлом снимке при широком экране */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-stone-950/60 via-transparent to-transparent" />
                 </>
               )}
 
               <div
                 className={
-                  banner.imageUrl
-                    ? 'relative mx-auto w-full max-w-6xl px-4 pt-8 pb-10 sm:px-6'
+                  withPhotos
+                    ? 'relative mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:pb-12'
                     : 'flex w-full flex-wrap items-center gap-x-3 gap-y-1'
                 }
               >
-                <span
+                <h2
                   className={
-                    banner.imageUrl
-                      ? 'block max-w-2xl text-2xl font-semibold text-balance sm:text-3xl'
-                      : 'font-medium'
+                    withPhotos
+                      ? 'max-w-2xl text-2xl leading-tight font-semibold text-balance sm:text-3xl lg:text-4xl'
+                      : 'text-sm font-medium'
                   }
                 >
                   {banner.title}
-                </span>
+                </h2>
 
                 {banner.subtitle && (
-                  <span
+                  <p
                     className={
-                      banner.imageUrl
-                        ? 'mt-2 block max-w-xl text-pretty text-stone-200'
-                        : 'text-stone-300'
+                      withPhotos
+                        ? 'mt-2 max-w-xl text-pretty text-stone-200 sm:text-lg'
+                        : 'text-sm text-stone-300'
                     }
                   >
                     {banner.subtitle}
-                  </span>
+                  </p>
                 )}
 
                 {banner.linkText && (
                   <span
                     className={
-                      banner.imageUrl
+                      withPhotos
                         ? 'mt-5 inline-flex h-11 items-center gap-1.5 rounded-lg bg-white px-5 font-medium text-stone-900 transition-transform group-hover:scale-[1.02]'
-                        : 'ml-auto inline-flex items-center gap-1 whitespace-nowrap text-amber-400'
+                        : 'ml-auto inline-flex items-center gap-1 text-sm whitespace-nowrap text-amber-400'
                     }
                   >
                     {banner.linkText}
@@ -147,7 +160,13 @@ export function BannerSlider({ banners, locale, interval = 6000 }: Props) {
       </div>
 
       {count > 1 && (
-        <div className="absolute inset-x-0 bottom-1 flex justify-center gap-1.5">
+        <div
+          className={
+            withPhotos
+              ? 'absolute inset-x-0 bottom-4 flex justify-center gap-1.5'
+              : 'absolute inset-x-0 bottom-1 flex justify-center gap-1.5'
+          }
+        >
           {banners.map((banner, position) => (
             <button
               key={banner.id}
@@ -157,8 +176,8 @@ export function BannerSlider({ banners, locale, interval = 6000 }: Props) {
               aria-current={position === index}
               className={
                 position === index
-                  ? 'h-1 w-6 rounded-full bg-amber-400 transition-all'
-                  : 'h-1 w-1.5 rounded-full bg-white/40 transition-all hover:bg-white/70'
+                  ? 'h-1.5 w-7 rounded-full bg-white transition-all'
+                  : 'h-1.5 w-1.5 rounded-full bg-white/50 transition-all hover:bg-white/80'
               }
             />
           ))}
