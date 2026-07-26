@@ -44,12 +44,15 @@ export function SiteHeader({ locale, phone, labels }: Props) {
               </span>
             </>
           ) : (
-            // Логотип берётся из apps/web/public/logo.svg
+            // Логотип из apps/web/public. Размеры заданы явно,
+            // иначе при загрузке шапка дёргается.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src="/logo.svg"
+              src="/qazaqtaslogotype.png"
               alt="QAZAQ TAS GROUP"
-              className="h-9 w-auto"
+              width={306}
+              height={110}
+              className="h-10 w-auto"
               onError={() => setLogoFailed(true)}
             />
           )}

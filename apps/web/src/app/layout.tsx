@@ -2,22 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: {
-    default: 'QAZAQ TAS GROUP — производство изделий из мраморного композита',
-    template: '%s | QAZAQ TAS GROUP',
-  },
-  description:
-    'QAZAQ TAS GROUP — производство брусчатки, бордюров, дренажных систем, МАФ и изделий ' +
-    'из мраморного композита. Собственное производство, доставка по Казахстану.',
-  keywords: [
-    'брусчатка',
-    'бордюр',
-    'мраморный композит',
-    'дренажные системы',
-    'МАФ',
-    'благоустройство',
-    'Казахстан',
-  ],
+  // Заголовок и описание задаёт языковой макет (app/[locale]/layout.tsx),
+  // здесь только запасной вариант для страниц вне языковых маршрутов.
+  title: 'QAZAQ TAS GROUP',
   robots: { index: true, follow: true },
 };
 
