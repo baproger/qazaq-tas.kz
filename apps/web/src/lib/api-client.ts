@@ -6,16 +6,18 @@ import { API_URL, getAccessToken } from './auth';
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getAccessToken();
 
+  // Content-Type ставим только когда тело действительно есть: Fastify отклоняет
+  // запрос с заголовком application/json и пустым телом — на это натыкались
+  // дублирование товара и удаление, где тело не передаётся.
+  const headers: Record<string, string> = {
+    ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(init.headers as Record<string, string> | undefined),
+  };
+
   // Сетевую ошибку браузера («Failed to fetch») переводим в понятный текст:
   // администратору нужно знать, что делать, а не видеть сообщение движка.
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init.headers,
-    },
-  }).catch(() => {
+  const response = await fetch(`${API_URL}${path}`, { ...init, headers }).catch(() => {
     throw new Error('Сервер не отвечает. Проверьте, запущен ли API, и попробуйте ещё раз.');
   });
 
