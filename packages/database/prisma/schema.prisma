@@ -88,3 +88,104 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+// ---------------------------------------------------------------
+// Каталог продукции (этап 2)
+// ---------------------------------------------------------------
+
+/// Единицы измерения продукции
+enum Unit {
+  M2 // квадратный метр
+  M3 // кубический метр
+  MP // метр погонный
+  PCS // штука
+  KG // килограмм
+  TON // тонна
+  L // литр
+}
+
+/// Категория продукции: брусчатка, бордюр, дренаж, МАФ и т.д.
+model Category {
+  id             String   @id @default(uuid())
+  name           String   @db.VarChar(191)
+  slug           String   @unique @db.VarChar(191)
+  description    String?  @db.Text
+  imageUrl       String?  @db.VarChar(512)
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  seoTitle       String?  @db.VarChar(255)
+  seoDescription String?  @db.VarChar(500)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  products Product[]
+
+  @@index([isActive, sortOrder])
+  @@map("categories")
+}
+
+/// Товар каталога
+model Product {
+  id               String   @id @default(uuid())
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  name             String   @db.VarChar(191)
+  slug             String   @unique @db.VarChar(191)
+  sku              String?  @unique @db.VarChar(64)
+  shortDescription String?  @db.VarChar(500)
+  description      String?  @db.Text
+  unit             Unit     @default(M2)
+  /// Цена за единицу измерения, тенге
+  price            Decimal  @db.Decimal(12, 2)
+  oldPrice         Decimal? @db.Decimal(12, 2)
+  /// Размеры изделия, например «300x300x60 мм»
+  dimensions       String?  @db.VarChar(191)
+  /// Доступные цвета: ["Серый", "Красный"]
+  colors           Json?
+  /// Характеристики: {"Морозостойкость": "F200", "Прочность": "М400"}
+  specs            Json?
+  inStock          Boolean  @default(true)
+  /// Остаток на складе (заполняется автоматически с этапа 7)
+  stockQuantity    Decimal? @db.Decimal(12, 3)
+  isPublished      Boolean  @default(false)
+  sortOrder        Int      @default(0)
+  seoTitle         String?  @db.VarChar(255)
+  seoDescription   String?  @db.VarChar(500)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  images    ProductImage[]
+  documents ProductDocument[]
+
+  @@index([categoryId, isPublished])
+  @@index([isPublished, sortOrder])
+  @@map("products")
+}
+
+/// Фотография или видео товара
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String   @db.VarChar(512)
+  alt       String?  @db.VarChar(255)
+  isMain    Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([productId, sortOrder])
+  @@map("product_images")
+}
+
+/// Сертификат, паспорт качества или другой документ товара
+model ProductDocument {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title     String   @db.VarChar(191)
+  url       String   @db.VarChar(512)
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@map("product_documents")
+}

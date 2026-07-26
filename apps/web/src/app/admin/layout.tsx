@@ -2,6 +2,7 @@
 
 import { UserRole, UserRoleLabel } from '@qazaq-tas/shared';
 import type { AuthUser } from '@qazaq-tas/shared';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { fetchCurrentUser, logout } from '@/lib/auth';
@@ -25,7 +26,7 @@ const SECTIONS = [
     name: 'Каталог товаров',
     href: '/admin/catalog',
     roles: [UserRole.DIRECTOR, UserRole.SALES_MANAGER, UserRole.ADMIN],
-    ready: false,
+    ready: true,
   },
   {
     name: 'Производство',
@@ -106,8 +107,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <ul className="space-y-1">
             {visible.map((section) => (
               <li key={section.href}>
-                <a
-                  href={section.ready ? section.href : undefined}
+                <Link
+                  href={section.ready ? section.href : '#'}
                   aria-disabled={!section.ready}
                   className={
                     section.ready
@@ -117,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 >
                   {section.name}
                   {!section.ready && <span className="text-[10px] uppercase">скоро</span>}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
