@@ -8,6 +8,7 @@
  */
 import { hash } from 'bcryptjs';
 import { PrismaClient, UserRole } from '../generated/prisma';
+import { seedSite } from './seed-site';
 
 const prisma = new PrismaClient();
 
@@ -65,6 +66,8 @@ async function main(): Promise<void> {
     });
     console.log(`  пользователь: ${user.email} (${user.role})`);
   }
+
+  await seedSite(prisma);
 
   console.log(`\nГотово. Пароль для всех учётных записей: ${DEFAULT_PASSWORD}`);
   console.log('В продакшене смените пароли сразу после первого входа.');

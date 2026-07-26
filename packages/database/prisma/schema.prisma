@@ -108,8 +108,10 @@ enum Unit {
 model Category {
   id             String   @id @default(uuid())
   name           String   @db.VarChar(191)
+  nameKk         String?  @db.VarChar(191)
   slug           String   @unique @db.VarChar(191)
   description    String?  @db.Text
+  descriptionKk  String?  @db.Text
   imageUrl       String?  @db.VarChar(512)
   sortOrder      Int      @default(0)
   isActive       Boolean  @default(true)
@@ -130,10 +132,13 @@ model Product {
   categoryId       String
   category         Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   name             String   @db.VarChar(191)
+  nameKk           String?  @db.VarChar(191)
   slug             String   @unique @db.VarChar(191)
   sku              String?  @unique @db.VarChar(64)
   shortDescription String?  @db.VarChar(500)
+  shortDescriptionKk String? @db.VarChar(500)
   description      String?  @db.Text
+  descriptionKk    String?  @db.Text
   unit             Unit     @default(M2)
   /// Цена за единицу измерения, тенге
   price            Decimal  @db.Decimal(12, 2)
@@ -188,4 +193,65 @@ model ProductDocument {
 
   @@index([productId])
   @@map("product_documents")
+}
+
+// ---------------------------------------------------------------
+// Мультиязычность и настройки сайта (этап 3)
+// ---------------------------------------------------------------
+
+/// Языки сайта
+enum Locale {
+  RU // русский
+  KK // казахский
+}
+
+/// Строка перевода интерфейса. Редактируется в админке без программиста.
+model Translation {
+  id        String   @id @default(uuid())
+  /// Ключ вида "hero.title", "nav.catalog"
+  key       String   @unique @db.VarChar(191)
+  /// Раздел для группировки в админке: "Шапка", "Главная", "Каталог"
+  group     String   @default("Общее") @db.VarChar(64)
+  ru        String   @db.Text
+  kk        String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+  @@map("translations")
+}
+
+/// Настройка сайта: телефон, WhatsApp, адрес, реквизиты.
+model SiteSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique @db.VarChar(191)
+  value     String   @db.Text
+  group     String   @default("Общее") @db.VarChar(64)
+  /// Подпись поля в админке
+  label     String   @db.VarChar(191)
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+  @@map("site_settings")
+}
+
+/// Баннер на главной странице со ссылкой
+model Banner {
+  id         String   @id @default(uuid())
+  titleRu    String   @db.VarChar(255)
+  titleKk    String   @db.VarChar(255)
+  subtitleRu String?  @db.VarChar(500)
+  subtitleKk String?  @db.VarChar(500)
+  imageUrl   String?  @db.VarChar(512)
+  /// Куда ведёт баннер
+  linkUrl    String?  @db.VarChar(512)
+  linkTextRu String?  @db.VarChar(191)
+  linkTextKk String?  @db.VarChar(191)
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@map("banners")
 }

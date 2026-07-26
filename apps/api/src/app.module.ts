@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { HealthModule } from './health/health.module';
+import { SiteModule } from './site/site.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { PrismaModule } from './prisma/prisma.module';
     PrismaModule,
     AuthModule,
     CatalogModule,
+    SiteModule,
     HealthModule,
   ],
 })
