@@ -18,10 +18,8 @@ if [ ! -f .env ]; then
 fi
 
 echo "==> Установка зависимостей"
-# npm install, а не npm ci: lock-файл создаётся на macOS и не содержит
-# платформенных бинарников для Linux (lightningcss, swc).
-# devDependencies нужны для сборки Next.js и NestJS.
-npm install --no-audit --no-fund
+# devDependencies нужны для сборки Next.js и NestJS, поэтому без --omit=dev.
+npm ci
 
 echo "==> Генерация Prisma-клиента"
 npm run db:generate
