@@ -73,21 +73,74 @@ export function BannerSlider({ banners, locale, interval = 6000 }: Props) {
             <Link
               href={href(banner)}
               tabIndex={position === index ? 0 : -1}
-              className="group mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-sm sm:px-6"
+              className={
+                banner.imageUrl
+                  ? 'group relative flex min-h-[13rem] items-end sm:min-h-[16rem] lg:min-h-[19rem]'
+                  : 'group mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-sm sm:px-6'
+              }
             >
-              <span className="font-medium">{banner.title}</span>
-              {banner.subtitle && <span className="text-stone-300">{banner.subtitle}</span>}
-              {banner.linkText && (
-                <span className="ml-auto inline-flex items-center gap-1 whitespace-nowrap text-amber-400">
-                  {banner.linkText}
-                  <span
-                    aria-hidden="true"
-                    className="transition-transform group-hover:translate-x-0.5"
-                  >
-                    →
-                  </span>
-                </span>
+              {banner.imageUrl && (
+                <>
+                  {/* Снимок закрывает всю площадь без искажения пропорций */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={banner.imageUrl}
+                    alt=""
+                    className="absolute inset-0 size-full object-cover"
+                    loading={position === 0 ? 'eager' : 'lazy'}
+                  />
+                  {/* Затемнение снизу: текст остаётся читаемым на светлой фотографии */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/45 to-stone-950/10" />
+                </>
               )}
+
+              <div
+                className={
+                  banner.imageUrl
+                    ? 'relative mx-auto w-full max-w-6xl px-4 pt-8 pb-10 sm:px-6'
+                    : 'flex w-full flex-wrap items-center gap-x-3 gap-y-1'
+                }
+              >
+                <span
+                  className={
+                    banner.imageUrl
+                      ? 'block max-w-2xl text-2xl font-semibold text-balance sm:text-3xl'
+                      : 'font-medium'
+                  }
+                >
+                  {banner.title}
+                </span>
+
+                {banner.subtitle && (
+                  <span
+                    className={
+                      banner.imageUrl
+                        ? 'mt-2 block max-w-xl text-pretty text-stone-200'
+                        : 'text-stone-300'
+                    }
+                  >
+                    {banner.subtitle}
+                  </span>
+                )}
+
+                {banner.linkText && (
+                  <span
+                    className={
+                      banner.imageUrl
+                        ? 'mt-5 inline-flex h-11 items-center gap-1.5 rounded-lg bg-white px-5 font-medium text-stone-900 transition-transform group-hover:scale-[1.02]'
+                        : 'ml-auto inline-flex items-center gap-1 whitespace-nowrap text-amber-400'
+                    }
+                  >
+                    {banner.linkText}
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform group-hover:translate-x-0.5"
+                    >
+                      →
+                    </span>
+                  </span>
+                )}
+              </div>
             </Link>
           </div>
         ))}

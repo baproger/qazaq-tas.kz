@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { ImageUpload } from '@/components/image-upload';
 import { apiFetch } from '@/lib/api-client';
 
 interface Banner {
@@ -10,6 +11,7 @@ interface Banner {
   titleKk: string;
   subtitleRu: string | null;
   subtitleKk: string | null;
+  imageUrl: string | null;
   linkUrl: string | null;
   linkTextRu: string | null;
   linkTextKk: string | null;
@@ -39,6 +41,7 @@ const INPUT =
   'h-10 w-full rounded-md border border-stone-300 bg-white px-3 text-sm outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20';
 
 const EMPTY_BANNER = {
+  imageUrl: null as string | null,
   titleRu: '',
   titleKk: '',
   subtitleRu: '',
@@ -91,6 +94,7 @@ export default function ContentPage() {
           ...draft,
           subtitleRu: draft.subtitleRu || undefined,
           subtitleKk: draft.subtitleKk || undefined,
+          imageUrl: draft.imageUrl || undefined,
           linkTextRu: draft.linkTextRu || undefined,
           linkTextKk: draft.linkTextKk || undefined,
         }),
@@ -179,6 +183,15 @@ export default function ContentPage() {
         <div className="space-y-4">
           <section className="space-y-3 rounded-xl border bg-white p-5">
             <h2 className="text-sm font-medium">Новый баннер</h2>
+
+            <ImageUpload
+              value={draft.imageUrl}
+              onChange={(url) => setDraft({ ...draft, imageUrl: url })}
+              purpose="banner"
+              label="Фотография баннера"
+              hint="Любой размер — сервер сам обрежет до широкого формата 21:9, сожмёт и переведёт в WebP"
+            />
+
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1">
                 <span className="text-sm">Заголовок (рус)</span>
@@ -249,6 +262,16 @@ export default function ContentPage() {
 
           {banners.map((banner) => (
             <section key={banner.id} className="space-y-3 rounded-xl border bg-white p-5">
+              <ImageUpload
+                value={banner.imageUrl}
+                onChange={(url) =>
+                  setBanners(banners.map((b) => (b.id === banner.id ? { ...b, imageUrl: url } : b)))
+                }
+                purpose="banner"
+                label="Фотография баннера"
+                hint="После замены нажмите «Сохранить»"
+              />
+
               <div className="grid gap-3 sm:grid-cols-2">
                 <input
                   value={banner.titleRu}
