@@ -40,7 +40,12 @@ async function bootstrap(): Promise<void> {
   });
 
   app.setGlobalPrefix(prefix);
-  app.enableCors({ origin: corsOrigin, credentials: true });
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

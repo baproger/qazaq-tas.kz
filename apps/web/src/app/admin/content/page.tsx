@@ -109,8 +109,23 @@ export default function ContentPage() {
 
   async function saveBanner(banner: Banner) {
     try {
-      const { id, ...data } = banner;
-      await apiFetch(`/admin/site/banners/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+      // Отправляем только те поля, которые сервер разрешает менять:
+      // createdAt и updatedAt он отклоняет как посторонние.
+      await apiFetch(`/admin/site/banners/${banner.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          titleRu: banner.titleRu,
+          titleKk: banner.titleKk,
+          subtitleRu: banner.subtitleRu ?? undefined,
+          subtitleKk: banner.subtitleKk ?? undefined,
+          imageUrl: banner.imageUrl ?? undefined,
+          linkUrl: banner.linkUrl ?? undefined,
+          linkTextRu: banner.linkTextRu ?? undefined,
+          linkTextKk: banner.linkTextKk ?? undefined,
+          isActive: banner.isActive,
+          sortOrder: banner.sortOrder,
+        }),
+      });
       report('Сохранено');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось сохранить');
