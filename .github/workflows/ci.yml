@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Проверка качества и сборка
+    runs-on: ubuntu-latest
+    env:
+      # Значение-заглушка: prisma generate не подключается к базе, но требует переменную
+      DATABASE_URL: mysql://ci:ci@localhost:3306/qazaq_tas_ci
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      NEXT_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установка Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Проверка схемы базы данных
+        run: npx prisma validate --schema packages/database/prisma/schema.prisma
+
+      - name: Форматирование
+        run: npm run format:check
+
+      - name: Линтер
+        run: npm run lint
+
+      - name: Проверка типов
+        run: npm run typecheck
+
+      - name: Тесты
+        run: npm run test
+
+      - name: Сборка
+        run: npm run build

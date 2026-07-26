@@ -1,0 +1,32 @@
+{
+  "name": "@qazaq-tas/database",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Схема базы данных (Prisma + MariaDB), миграции и начальные данные",
+  "main": "./generated/prisma/index.js",
+  "types": "./generated/prisma/index.d.ts",
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "reset": "dotenv -e ../../.env -- prisma migrate reset",
+    "studio": "dotenv -e ../../.env -- prisma studio",
+    "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
+    "format": "prisma format",
+    "validate": "prisma validate"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.3.0",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^6.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

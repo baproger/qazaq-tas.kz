@@ -1,0 +1,41 @@
+# зависимости
+node_modules/
+.pnp/
+.pnp.js
+
+# сборка
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Prisma — сгенерированный клиент (создаётся командой npm run db:generate)
+packages/database/generated/
+
+# окружение и секреты — НИКОГДА не коммитим
+.env
+.env.local
+.env.*.local
+.env.production
+
+# логи
+*.log
+npm-debug.log*
+logs/
+
+# загруженные файлы (фото товаров, документы, сертификаты)
+uploads/
+public/uploads/
+
+# кеши и тесты
+coverage/
+.eslintcache
+.turbo/
+
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

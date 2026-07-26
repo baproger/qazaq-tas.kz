@@ -1,0 +1,50 @@
+# Локальная инфраструктура разработки QAZAQ TAS ERP
+# Запуск:   npm run docker:up      (или docker compose up -d)
+# Остановка: npm run docker:down
+# Логи:      npm run docker:logs
+
+services:
+  db:
+    image: mariadb:10.4
+    container_name: qazaq_tas_db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      MARIADB_DATABASE: ${MYSQL_DATABASE:-qazaq_tas}
+      MARIADB_USER: ${MYSQL_USER:-qazaqtas}
+      MARIADB_PASSWORD: ${MYSQL_PASSWORD:-qazaqtas_password}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-default-row-format=dynamic
+      - --max-allowed-packet=64M
+    ports:
+      - '${DB_PORT:-3306}:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+      # Скрипты инициализации выполняются при первом создании базы
+      - ./docker/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-p${MYSQL_ROOT_PASSWORD:-root_password}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: qazaq_tas_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    ports:
+      - '${PHPMYADMIN_PORT:-8080}:80'
+
+volumes:
+  db_data:
+    name: qazaq_tas_db_data

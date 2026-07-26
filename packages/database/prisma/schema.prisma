@@ -1,0 +1,90 @@
+// ---------------------------------------------------------------
+// QAZAQ TAS ERP — схема базы данных
+// СУБД: MariaDB 10.4 (провайдер mysql)
+//
+// Этап 0: пользователи, авторизация, журнал действий.
+// Этап 1 расширяет схему до полного домена (клиенты, лиды, сделки,
+// товары, заказы, производство, склад, закупки, логистика, финансы).
+//
+// ВАЖНО: значения enum обязаны совпадать с packages/shared/src/enums.ts
+// ---------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Роли пользователей системы
+enum UserRole {
+  DIRECTOR // Директор — видит весь бизнес
+  SALES_MANAGER // Менеджер продаж
+  PRODUCTION // Производство
+  WAREHOUSE // Склад
+  ACCOUNTANT // Бухгалтер
+  ADMIN // Администратор системы
+}
+
+/// Пользователь системы
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique @db.VarChar(191)
+  passwordHash     String    @db.VarChar(255)
+  fullName         String    @db.VarChar(191)
+  phone            String?   @db.VarChar(32)
+  position         String?   @db.VarChar(191)
+  role             UserRole  @default(SALES_MANAGER)
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?   @db.VarChar(255)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+/// Refresh-токен сессии (для выхода со всех устройств и отзыва доступа)
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique @db.VarChar(255)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?   @db.VarChar(255)
+  ipAddress String?   @db.VarChar(64)
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+/// Журнал действий: кто, что и когда изменил (требование раздела «Безопасность»)
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   @db.VarChar(64) // CREATE, UPDATE, DELETE, LOGIN, EXPORT...
+  entity    String   @db.VarChar(64) // Order, Client, Product...
+  entityId  String?  @db.VarChar(64)
+  changes   Json? // что именно изменилось: { поле: [было, стало] }
+  ipAddress String?  @db.VarChar(64)
+  userAgent String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
