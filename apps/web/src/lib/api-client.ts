@@ -6,6 +6,8 @@ import { API_URL, getAccessToken } from './auth';
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getAccessToken();
 
+  // Сетевую ошибку браузера («Failed to fetch») переводим в понятный текст:
+  // администратору нужно знать, что делать, а не видеть сообщение движка.
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
@@ -13,6 +15,8 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init.headers,
     },
+  }).catch(() => {
+    throw new Error('Сервер не отвечает. Проверьте, запущен ли API, и попробуйте ещё раз.');
   });
 
   if (response.status === 204) return undefined as T;

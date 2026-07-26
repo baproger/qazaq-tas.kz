@@ -30,10 +30,14 @@ export function ImageUpload({ value, onChange, purpose, label = 'Изображ�
       const body = new FormData();
       body.append('file', file);
 
+      // fetch падает с «Failed to fetch», если сервер недоступен, —
+      // подменяем это на понятное человеку сообщение.
       const response = await fetch(`${API_URL}/uploads/image?purpose=${purpose}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${getAccessToken() ?? ''}` },
         body,
+      }).catch(() => {
+        throw new Error('Сервер не отвечает. Проверьте, запущен ли API, и попробуйте ещё раз.');
       });
 
       const data = await response.json().catch(() => null);
