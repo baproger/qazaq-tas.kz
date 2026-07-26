@@ -105,7 +105,8 @@ export class CatalogService {
         data: {
           ...data,
           unit: data.unit as never,
-          colors: data.colors ?? undefined,
+          availability: data.availability as never,
+          colors: (data.colors as never) ?? undefined,
           specs: data.specs ?? undefined,
           images: imageUrls?.length
             ? {
@@ -134,7 +135,8 @@ export class CatalogService {
         data: {
           ...data,
           unit: data.unit as never,
-          colors: data.colors ?? undefined,
+          availability: data.availability as never,
+          colors: (data.colors as never) ?? undefined,
           specs: data.specs ?? undefined,
           // Список фотографий заменяется целиком, если он передан.
           ...(imageUrls
@@ -153,6 +155,54 @@ export class CatalogService {
         include: { category: true, images: { orderBy: { sortOrder: 'asc' } } },
       }),
     );
+  }
+
+  /**
+   * Дубликат товара: копирует все поля и фотографии.
+   * Название и адрес получают пометку, а артикул очищается — он должен быть
+   * уникальным, и подставлять его автоматически было бы ошибкой.
+   */
+  async duplicateProduct(id: string) {
+    const source = await this.prisma.product.findUnique({
+      where: { id },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
+    });
+
+    if (!source) throw new NotFoundException('Товар не найден');
+
+    const { id: _id, createdAt: _c, updatedAt: _u, images, sku: _sku, ...data } = source;
+
+    return this.prisma.product.create({
+      data: {
+        ...data,
+        name: `${source.name} (копия)`,
+        nameKk: source.nameKk ? `${source.nameKk} (көшірме)` : null,
+        slug: await this.uniqueSlug(source.slug),
+        // Копия не публикуется сразу: сначала её правят, потом выводят на сайт
+        isPublished: false,
+        colors: source.colors ?? undefined,
+        specs: source.specs ?? undefined,
+        images: {
+          create: images.map((image) => ({
+            url: image.url,
+            alt: image.alt,
+            isMain: image.isMain,
+            sortOrder: image.sortOrder,
+          })),
+        },
+      },
+      include: { category: true, images: true },
+    });
+  }
+
+  /** Подбирает свободный адрес вида slug-2, slug-3... */
+  private async uniqueSlug(base: string): Promise<string> {
+    for (let suffix = 2; suffix < 100; suffix += 1) {
+      const candidate = `${base}-${suffix}`;
+      const taken = await this.prisma.product.findUnique({ where: { slug: candidate } });
+      if (!taken) return candidate;
+    }
+    throw new BadRequestException('Не удалось подобрать адрес для копии');
   }
 
   async removeProduct(id: string): Promise<void> {

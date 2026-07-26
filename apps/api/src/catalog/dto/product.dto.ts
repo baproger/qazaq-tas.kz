@@ -61,6 +61,13 @@ export class CreateProductDto {
   @Min(0)
   price: number;
 
+  @ApiPropertyOptional({ description: 'Верхняя граница цены: выводится как «от X до Y»' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  priceMax?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @Type(() => Number)
@@ -68,17 +75,68 @@ export class CreateProductDto {
   @Min(0)
   oldPrice?: number;
 
+  @ApiPropertyOptional({ example: 'Композитный мрамор' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(191)
+  material?: string;
+
+  @ApiPropertyOptional({ example: 'Композитті мәрмәр' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(191)
+  materialKk?: string;
+
+  @ApiPropertyOptional({ enum: ['IN_STOCK', 'ON_ORDER', 'ON_REQUEST'] })
+  @IsOptional()
+  @IsIn(['IN_STOCK', 'ON_ORDER', 'ON_REQUEST'], { message: 'Недопустимый статус наличия' })
+  availability?: string;
+
+  @ApiPropertyOptional({ description: 'Высота, см' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 1 })
+  @Min(0)
+  heightCm?: number;
+
+  @ApiPropertyOptional({ description: 'Ширина, см' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 1 })
+  @Min(0)
+  widthCm?: number;
+
+  @ApiPropertyOptional({ description: 'Длина, см' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 1 })
+  @Min(0)
+  lengthCm?: number;
+
+  @ApiPropertyOptional({ description: 'Диаметр, см' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 1 })
+  @Min(0)
+  diameterCm?: number;
+
+  @ApiPropertyOptional({ description: 'Объём, л' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 1 })
+  @Min(0)
+  volumeL?: number;
+
   @ApiPropertyOptional({ example: '300x300x60 мм' })
   @IsOptional()
   @IsString()
   @MaxLength(191)
   dimensions?: string;
 
-  @ApiPropertyOptional({ example: ['Серый', 'Красный'] })
+  @ApiPropertyOptional({ example: [{ name: 'Серый', hex: '#8a8a8a' }] })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  colors?: string[];
+  colors?: Array<{ name: string; hex?: string }>;
 
   @ApiPropertyOptional({ example: { Морозостойкость: 'F200' } })
   @IsOptional()

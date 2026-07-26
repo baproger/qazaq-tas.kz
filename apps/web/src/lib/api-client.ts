@@ -53,8 +53,17 @@ export interface Product {
   sku: string | null;
   unit: string;
   price: string;
+  priceMax: string | null;
+  material: string | null;
+  materialKk: string | null;
+  availability: 'IN_STOCK' | 'ON_ORDER' | 'ON_REQUEST';
+  heightCm: string | null;
+  widthCm: string | null;
+  lengthCm: string | null;
+  diameterCm: string | null;
+  volumeL: string | null;
   dimensions: string | null;
-  colors: string[] | null;
+  colors: Array<{ name: string; hex?: string }> | string[] | null;
   specs: Record<string, string> | null;
   inStock: boolean;
   isPublished: boolean;

@@ -4,10 +4,43 @@ import Link from 'next/link';
 import { Unit, UnitLabel } from '@qazaq-tas/shared';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
+import { GalleryUpload } from '@/components/gallery-upload';
 import { apiFetch, type Category, type Product } from '@/lib/api-client';
 
 const INPUT =
   'h-10 w-full rounded-md border bg-[var(--background)] px-3 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30';
+
+/** «Название: #hex» построчно → массив цветов для API. */
+function parseColors(text: string): Array<{ name: string; hex?: string }> {
+  return text
+    .split('\n')
+    .map((line) => {
+      const [name, hex] = line.split(':');
+      if (!name?.trim()) return null;
+      const code = hex?.trim();
+      return { name: name.trim(), ...(code ? { hex: code } : {}) };
+    })
+    .filter((item): item is { name: string; hex?: string } => item !== null);
+}
+
+/** Обратное преобразование для показа в форме. */
+function colorsToText(colors: Product['colors'] | undefined): string {
+  if (!Array.isArray(colors)) return '';
+
+  return colors
+    .map((color) =>
+      typeof color === 'string' ? color : `${color.name}${color.hex ? `: ${color.hex}` : ''}`,
+    )
+    .join('\n');
+}
+
+/** Числовое поле попадает в запрос только если заполнено. */
+function numberField(name: string, value: string | number): Record<string, number> {
+  const text = String(value).trim();
+  if (!text) return {};
+  const parsed = Number(text);
+  return Number.isFinite(parsed) ? { [name]: parsed } : {};
+}
 
 export function ProductForm({ product }: { product?: Product }) {
   const router = useRouter();
@@ -22,11 +55,20 @@ export function ProductForm({ product }: { product?: Product }) {
     sku: product?.sku ?? '',
     unit: product?.unit ?? Unit.M2,
     price: product?.price ?? '',
+    priceMax: product?.priceMax ?? '',
+    material: product?.material ?? '',
+    materialKk: product?.materialKk ?? '',
+    availability: product?.availability ?? 'IN_STOCK',
+    heightCm: product?.heightCm ?? '',
+    widthCm: product?.widthCm ?? '',
+    lengthCm: product?.lengthCm ?? '',
+    diameterCm: product?.diameterCm ?? '',
+    volumeL: product?.volumeL ?? '',
     dimensions: product?.dimensions ?? '',
-    colors: product?.colors?.join(', ') ?? '',
+    colors: colorsToText(product?.colors),
     shortDescription: product?.shortDescription ?? '',
     description: product?.description ?? '',
-    imageUrls: product?.images?.map((image) => image.url).join('\n') ?? '',
+    images: product?.images?.map((image) => image.url) ?? [],
     specs: product?.specs
       ? Object.entries(product.specs)
           .map(([key, value]) => `${key}: ${value}`)
@@ -68,27 +110,22 @@ export function ProductForm({ product }: { product?: Product }) {
       sortOrder: Number(form.sortOrder),
       inStock: form.inStock,
       isPublished: form.isPublished,
+      availability: form.availability,
+      ...numberField('priceMax', form.priceMax),
+      ...numberField('heightCm', form.heightCm),
+      ...numberField('widthCm', form.widthCm),
+      ...numberField('lengthCm', form.lengthCm),
+      ...numberField('diameterCm', form.diameterCm),
+      ...numberField('volumeL', form.volumeL),
+      ...(form.material.trim() ? { material: form.material.trim() } : {}),
+      ...(form.materialKk.trim() ? { materialKk: form.materialKk.trim() } : {}),
       ...(form.sku.trim() ? { sku: form.sku.trim() } : {}),
       ...(form.dimensions.trim() ? { dimensions: form.dimensions.trim() } : {}),
       ...(form.shortDescription.trim() ? { shortDescription: form.shortDescription.trim() } : {}),
       ...(form.description.trim() ? { description: form.description.trim() } : {}),
-      ...(form.colors.trim()
-        ? {
-            colors: form.colors
-              .split(',')
-              .map((color) => color.trim())
-              .filter(Boolean),
-          }
-        : {}),
+      ...(form.colors.trim() ? { colors: parseColors(form.colors) } : {}),
       ...(Object.keys(specs).length > 0 ? { specs } : {}),
-      ...(form.imageUrls.trim()
-        ? {
-            imageUrls: form.imageUrls
-              .split('\n')
-              .map((url) => url.trim())
-              .filter(Boolean),
-          }
-        : {}),
+      imageUrls: form.images,
     };
 
     try {
@@ -170,7 +207,7 @@ export function ProductForm({ product }: { product?: Product }) {
 
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="space-y-1.5">
-            <span className="text-sm">Цена, ₸</span>
+            <span className="text-sm">Цена от, ₸</span>
             <input
               required
               type="number"
@@ -179,6 +216,19 @@ export function ProductForm({ product }: { product?: Product }) {
               value={form.price}
               onChange={(event) => update('price', event.target.value)}
               className={INPUT}
+            />
+          </label>
+
+          <label className="space-y-1.5">
+            <span className="text-sm">Цена до, ₸</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.priceMax}
+              onChange={(event) => update('priceMax', event.target.value)}
+              className={INPUT}
+              placeholder="необязательно"
             />
           </label>
 
@@ -213,27 +263,97 @@ export function ProductForm({ product }: { product?: Product }) {
       <section className="space-y-4 rounded-xl border bg-[var(--card)] p-6">
         <h2 className="text-sm font-medium">Характеристики</h2>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <label className="space-y-1.5">
-            <span className="text-sm">Размеры</span>
-            <input
-              value={form.dimensions}
-              onChange={(event) => update('dimensions', event.target.value)}
+            <span className="text-sm">Наличие</span>
+            <select
+              value={form.availability}
+              onChange={(event) =>
+                update('availability', event.target.value as Product['availability'])
+              }
               className={INPUT}
-              placeholder="300x300x60 мм"
+            >
+              <option value="IN_STOCK">В наличии</option>
+              <option value="ON_ORDER">Под заказ</option>
+              <option value="ON_REQUEST">Цена по запросу</option>
+            </select>
+          </label>
+
+          <label className="space-y-1.5">
+            <span className="text-sm">Материал (рус)</span>
+            <input
+              value={form.material}
+              onChange={(event) => update('material', event.target.value)}
+              className={INPUT}
+              placeholder="Композитный мрамор"
             />
           </label>
 
           <label className="space-y-1.5">
-            <span className="text-sm">Цвета через запятую</span>
+            <span className="text-sm">Материал (каз)</span>
             <input
-              value={form.colors}
-              onChange={(event) => update('colors', event.target.value)}
+              value={form.materialKk}
+              onChange={(event) => update('materialKk', event.target.value)}
               className={INPUT}
-              placeholder="Серый, Красный, Жёлтый"
+              placeholder="Композитті мәрмәр"
             />
           </label>
         </div>
+
+        <fieldset className="space-y-2">
+          <legend className="text-sm">Габариты — заполняйте только нужные</legend>
+          <div className="grid gap-3 sm:grid-cols-5">
+            {(
+              [
+                ['heightCm', 'Высота, см'],
+                ['widthCm', 'Ширина, см'],
+                ['lengthCm', 'Длина, см'],
+                ['diameterCm', 'Диаметр, см'],
+                ['volumeL', 'Объём, л'],
+              ] as const
+            ).map(([field, label]) => (
+              <label key={field} className="space-y-1.5">
+                <span className="text-xs text-stone-600">{label}</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={form[field]}
+                  onChange={(event) => update(field, event.target.value)}
+                  className={INPUT}
+                />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <label className="block space-y-1.5">
+          <span className="text-sm">Размеры одной строкой</span>
+          <input
+            value={form.dimensions}
+            onChange={(event) => update('dimensions', event.target.value)}
+            className={INPUT}
+            placeholder="15x30 см · 7x7 см"
+          />
+          <span className="text-xs text-stone-500">
+            Если габариты не раскладываются по полям выше
+          </span>
+        </label>
+
+        <label className="block space-y-1.5">
+          <span className="text-sm">Цвета с образцами</span>
+          <textarea
+            rows={4}
+            value={form.colors}
+            onChange={(event) => update('colors', event.target.value)}
+            className="w-full rounded-md border bg-[var(--background)] p-3 text-sm outline-none focus:border-[var(--accent)]"
+            placeholder={'Чёрный: #2b2724\nБелый: #efe9df\nПесочный: #d8c093'}
+          />
+          <span className="text-xs text-stone-500">
+            По строке на цвет: название, двоеточие, код цвета. Код можно не указывать — тогда кружок
+            будет пустым.
+          </span>
+        </label>
 
         <label className="block space-y-1.5">
           <span className="text-sm">Характеристики</span>
@@ -272,19 +392,7 @@ export function ProductForm({ product }: { product?: Product }) {
           />
         </label>
 
-        <label className="block space-y-1.5">
-          <span className="text-sm">Ссылки на фотографии</span>
-          <textarea
-            rows={3}
-            value={form.imageUrls}
-            onChange={(event) => update('imageUrls', event.target.value)}
-            className="w-full rounded-md border bg-[var(--background)] p-3 text-sm outline-none focus:border-[var(--accent)]"
-            placeholder={'https://example.com/foto-1.jpg\nhttps://example.com/foto-2.jpg'}
-          />
-          <span className="text-xs text-[var(--muted-foreground)]">
-            По одной ссылке в строке. Загрузка файлов с компьютера появится следующим шагом.
-          </span>
-        </label>
+        <GalleryUpload value={form.images} onChange={(images) => update('images', images)} />
       </section>
 
       <section className="flex flex-wrap items-center gap-6 rounded-xl border bg-[var(--card)] p-6">

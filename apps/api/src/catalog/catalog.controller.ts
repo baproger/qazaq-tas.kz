@@ -96,6 +96,15 @@ export class CatalogController {
     return this.catalog.updateProduct(id, dto);
   }
 
+  @Post('products/:id/duplicate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...CATALOG_EDITORS)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Создать копию товара' })
+  duplicateProduct(@Param('id', ParseUUIDPipe) id: string) {
+    return this.catalog.duplicateProduct(id);
+  }
+
   @Delete('products/:id')
   @HttpCode(204)
   @UseGuards(JwtAuthGuard, RolesGuard)

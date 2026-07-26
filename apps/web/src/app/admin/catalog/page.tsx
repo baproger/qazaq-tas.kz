@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CURRENCY_SYMBOL, UnitLabel, type Unit } from '@qazaq-tas/shared';
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch, type Paginated, type Product } from '@/lib/api-client';
 
 export default function CatalogPage() {
+  const router = useRouter();
   const [data, setData] = useState<Paginated<Product> | null>(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -25,6 +27,20 @@ export default function CatalogPage() {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
   }, [load]);
+
+  /** Копия товара: экономит время, когда позиции отличаются только размером или цветом. */
+  async function handleDuplicate(product: Product) {
+    setError(null);
+    try {
+      const copy = await apiFetch<Product>(`/catalog/products/${product.id}/duplicate`, {
+        method: 'POST',
+      });
+      // Сразу открываем копию на правку — обычно её и надо переименовать
+      router.push(`/admin/catalog/${copy.id}`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Не удалось создать копию');
+    }
+  }
 
   async function handleDelete(product: Product) {
     if (!confirm(`Удалить товар «${product.name}»? Действие необратимо.`)) return;
@@ -135,6 +151,14 @@ export default function CatalogPage() {
                   <Link href={`/admin/catalog/${product.id}`} className="text-xs hover:underline">
                     Изменить
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleDuplicate(product)}
+                    className="ml-3 text-xs hover:underline"
+                    title="Создать копию со всеми полями и фотографиями"
+                  >
+                    Дублировать
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleDelete(product)}
