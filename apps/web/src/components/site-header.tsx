@@ -14,6 +14,7 @@ interface Props {
 export function SiteHeader({ locale, phone, labels }: Props) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
 
   const links = [
     { href: `/${locale}/catalog`, label: labels.catalog },
@@ -31,13 +32,27 @@ export function SiteHeader({ locale, phone, labels }: Props) {
   return (
     <header className="sticky top-0 z-50 border-b border-stone-200/80 bg-white/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
-        <Link href={`/${locale}`} className="shrink-0 leading-tight">
-          <span className="block text-base font-semibold tracking-tight text-stone-900">
-            QAZAQ TAS
-          </span>
-          <span className="block text-[11px] tracking-[0.18em] text-stone-500 uppercase">
-            Group
-          </span>
+        <Link href={`/${locale}`} className="shrink-0 leading-tight" aria-label="QAZAQ TAS GROUP">
+          {logoFailed ? (
+            // Пока файл логотипа не загружен — показываем текстовое написание.
+            <>
+              <span className="block text-base font-semibold tracking-tight text-stone-900">
+                QAZAQ TAS
+              </span>
+              <span className="block text-[11px] tracking-[0.18em] text-stone-500 uppercase">
+                Group
+              </span>
+            </>
+          ) : (
+            // Логотип берётся из apps/web/public/logo.svg
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/logo.svg"
+              alt="QAZAQ TAS GROUP"
+              className="h-9 w-auto"
+              onError={() => setLogoFailed(true)}
+            />
+          )}
         </Link>
 
         <nav className="hidden flex-1 items-center gap-7 md:flex">
