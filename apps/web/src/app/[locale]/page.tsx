@@ -1,6 +1,8 @@
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { BannerSlider } from '@/components/banner-slider';
+import { CategoryIcon } from '@/components/category-icon';
 import { ProductCard } from '@/components/product-card';
 import {
   getBootstrap,
@@ -28,7 +30,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   ]);
 
   const t = translator(dictionary);
-  const banner = banners[0];
   const whatsapp = settings['company.whatsapp'] ?? '';
 
   const features = [
@@ -39,33 +40,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <main>
-      {/* Баннер-акция со ссылкой */}
-      {banner && (
-        <Link
-          href={
-            banner.linkUrl?.startsWith('/')
-              ? `/${locale}${banner.linkUrl}`
-              : (banner.linkUrl ?? '#')
-          }
-          className="group block bg-stone-900 text-white transition-colors hover:bg-stone-800"
-        >
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-sm sm:px-6">
-            <span className="font-medium">{banner.title}</span>
-            {banner.subtitle && <span className="text-stone-300">{banner.subtitle}</span>}
-            {banner.linkText && (
-              <span className="ml-auto inline-flex items-center gap-1 text-amber-400">
-                {banner.linkText}
-                <span
-                  aria-hidden="true"
-                  className="transition-transform group-hover:translate-x-0.5"
-                >
-                  →
-                </span>
-              </span>
-            )}
-          </div>
-        </Link>
-      )}
+      {/* Лента акций: листается сама, останавливается при наведении */}
+      <BannerSlider banners={banners} locale={locale} />
 
       {/* Первый экран: заголовок и трёхмерная выкладка брусчатки */}
       <section className="relative overflow-hidden border-b border-stone-200 bg-gradient-to-b from-stone-100 to-stone-50">
@@ -130,9 +106,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <li key={category.id}>
               <Link
                 href={`/${locale}/catalog?category=${category.slug}`}
-                className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-5 py-4 transition-colors hover:border-amber-600/60"
+                className="group flex items-center gap-4 rounded-xl border border-stone-200 bg-white px-5 py-4 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-amber-600/60"
               >
-                <span className="font-medium">{category.name}</span>
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-700 transition-colors group-hover:bg-amber-50 group-hover:text-amber-800">
+                  <CategoryIcon slug={category.slug} className="size-6" />
+                </span>
+                <span className="min-w-0 flex-1 font-medium">{category.name}</span>
                 <span className="text-sm tabular-nums text-stone-500">{category.productCount}</span>
               </Link>
             </li>

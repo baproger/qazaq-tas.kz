@@ -11,6 +11,12 @@ import { fetchCurrentUser, logout } from '@/lib/auth';
 const SECTIONS = [
   { name: 'Обзор', href: '/admin', roles: null, ready: true },
   {
+    name: 'Содержимое сайта',
+    href: '/admin/content',
+    roles: [UserRole.DIRECTOR, UserRole.SALES_MANAGER, UserRole.ADMIN],
+    ready: true,
+  },
+  {
     name: 'Клиенты и лиды',
     href: '/admin/crm',
     roles: [UserRole.DIRECTOR, UserRole.SALES_MANAGER, UserRole.ADMIN],
