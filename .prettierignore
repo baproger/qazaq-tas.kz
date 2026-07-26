@@ -4,3 +4,6 @@ dist
 coverage
 packages/database/generated
 package-lock.json
+
+# генерируется Next при каждой сборке
+apps/web/next-env.d.ts
