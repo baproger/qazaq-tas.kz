@@ -1,13 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, type Paginated } from '@qazaq-tas/shared';
 import { Prisma } from '@qazaq-tas/database';
+import { RevalidationService } from '../common/revalidation.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto';
 import type { CreateProductDto, ProductListQueryDto, UpdateProductDto } from './dto/product.dto';
 
 @Injectable()
 export class CatalogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly revalidation: RevalidationService,
+  ) {}
 
   // --- Категории ---
 
@@ -20,10 +24,12 @@ export class CatalogService {
   }
 
   async createCategory(dto: CreateCategoryDto) {
+    this.revalidation.trigger();
     return this.guardUnique(() => this.prisma.category.create({ data: dto }));
   }
 
   async updateCategory(id: string, dto: UpdateCategoryDto) {
+    this.revalidation.trigger();
     await this.findCategoryOrFail(id);
     return this.guardUnique(() => this.prisma.category.update({ where: { id }, data: dto }));
   }
@@ -44,6 +50,7 @@ export class CatalogService {
     }
 
     await this.prisma.category.delete({ where: { id } });
+    this.revalidation.trigger();
   }
 
   // --- Товары ---
@@ -97,6 +104,7 @@ export class CatalogService {
   }
 
   async createProduct(dto: CreateProductDto) {
+    this.revalidation.trigger();
     const { imageUrls, ...data } = dto;
     await this.findCategoryOrFail(data.categoryId);
 
@@ -124,6 +132,7 @@ export class CatalogService {
   }
 
   async updateProduct(id: string, dto: UpdateProductDto) {
+    this.revalidation.trigger();
     await this.findProduct(id);
     const { imageUrls, ...data } = dto;
 
@@ -163,6 +172,7 @@ export class CatalogService {
    * уникальным, и подставлять его автоматически было бы ошибкой.
    */
   async duplicateProduct(id: string) {
+    this.revalidation.trigger();
     const source = await this.prisma.product.findUnique({
       where: { id },
       include: { images: { orderBy: { sortOrder: 'asc' } } },
@@ -208,6 +218,7 @@ export class CatalogService {
   async removeProduct(id: string): Promise<void> {
     await this.findProduct(id);
     await this.prisma.product.delete({ where: { id } });
+    this.revalidation.trigger();
   }
 
   private async findCategoryOrFail(id: string) {

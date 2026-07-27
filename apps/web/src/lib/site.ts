@@ -65,7 +65,12 @@ export function isLocale(value: string): value is Locale {
 
 async function request<T>(path: string, fallback: T): Promise<T> {
   try {
-    const response = await fetch(`${API_URL}${path}`, { next: { revalidate: 60 } });
+    const response = await fetch(`${API_URL}${path}`, {
+      // Метка «site» позволяет сбросить весь кеш витрины одним сигналом
+      // из админки; срок в 10 минут остаётся страховкой на случай,
+      // если сигнал не дошёл.
+      next: { revalidate: 600, tags: ['site'] },
+    });
     if (!response.ok) return fallback;
     return (await response.json()) as T;
   } catch {

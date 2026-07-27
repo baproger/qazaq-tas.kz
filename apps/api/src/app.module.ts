@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { CommonModule } from './common/common.module';
 import { HealthModule } from './health/health.module';
 import { SiteModule } from './site/site.module';
 import { UploadsModule } from './uploads/uploads.module';
@@ -16,6 +17,7 @@ import { PrismaModule } from './prisma/prisma.module';
       cache: true,
     }),
     PrismaModule,
+    CommonModule,
     AuthModule,
     CatalogModule,
     SiteModule,

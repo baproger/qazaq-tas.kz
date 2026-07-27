@@ -15,6 +15,7 @@ import { UserRole } from '@qazaq-tas/shared';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { RevalidationService } from '../common/revalidation.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateBannerDto,
@@ -30,7 +31,17 @@ import {
 @Roles(UserRole.DIRECTOR, UserRole.ADMIN, UserRole.SALES_MANAGER)
 @Controller('admin/site')
 export class SiteAdminController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly revalidation: RevalidationService,
+  ) {}
+
+  /** Любое изменение содержимого должно немедленно отражаться на сайте. */
+  private async withRevalidation<T>(action: Promise<T>): Promise<T> {
+    const result = await action;
+    this.revalidation.trigger();
+    return result;
+  }
 
   // --- Баннеры ---
 
@@ -43,20 +54,20 @@ export class SiteAdminController {
   @Post('banners')
   @ApiOperation({ summary: 'Создать баннер' })
   createBanner(@Body() dto: CreateBannerDto) {
-    return this.prisma.banner.create({ data: dto });
+    return this.withRevalidation(this.prisma.banner.create({ data: dto }));
   }
 
   @Patch('banners/:id')
   @ApiOperation({ summary: 'Изменить баннер' })
   updateBanner(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateBannerDto) {
-    return this.prisma.banner.update({ where: { id }, data: dto });
+    return this.withRevalidation(this.prisma.banner.update({ where: { id }, data: dto }));
   }
 
   @Delete('banners/:id')
   @HttpCode(204)
   @ApiOperation({ summary: 'Удалить баннер' })
   async removeBanner(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    await this.prisma.banner.delete({ where: { id } });
+    await this.withRevalidation(this.prisma.banner.delete({ where: { id } }));
   }
 
   // --- Переводы ---
@@ -70,7 +81,7 @@ export class SiteAdminController {
   @Patch('translations/:id')
   @ApiOperation({ summary: 'Изменить перевод' })
   updateTranslation(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTranslationDto) {
-    return this.prisma.translation.update({ where: { id }, data: dto });
+    return this.withRevalidation(this.prisma.translation.update({ where: { id }, data: dto }));
   }
 
   // --- Настройки ---
@@ -84,6 +95,6 @@ export class SiteAdminController {
   @Patch('settings/:id')
   @ApiOperation({ summary: 'Изменить настройку' })
   updateSetting(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateSettingDto) {
-    return this.prisma.siteSetting.update({ where: { id }, data: dto });
+    return this.withRevalidation(this.prisma.siteSetting.update({ where: { id }, data: dto }));
   }
 }
